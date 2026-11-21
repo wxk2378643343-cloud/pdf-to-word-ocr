@@ -1,0 +1,22 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: docker/backend.Dockerfile
+    environment:
+      DOUBAO_API_KEY: ${DOUBAO_API_KEY:?Set DOUBAO_API_KEY in .env}
+      DOUBAO_API_ENDPOINT: ${DOUBAO_API_ENDPOINT:-https://ark.cn-beijing.volces.com/api/v3}
+      DOUBAO_MODEL: ${DOUBAO_MODEL:-doubao-seed-1.6-vision}
+    volumes:
+      - documents:/app/uploads
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend.Dockerfile
+    depends_on:
+      - backend
+    ports:
+      - "127.0.0.1:${APP_PORT:-3000}:80"
+
+volumes:
+  documents:

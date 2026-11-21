@@ -250,3 +250,26 @@ MIT License
 ## 联系方式
 
 如有问题，请提交Issue或联系开发者。
+
+
+## Docker 本地部署
+
+需要 Docker 和 Compose v2。在仓库根目录创建 `.env`，填写以下变量。
+
+```dotenv
+DOUBAO_API_KEY=replace_with_your_api_key
+DOUBAO_MODEL=doubao-seed-1.6-vision
+APP_PORT=3000
+```
+
+```sh
+docker compose config --quiet
+docker compose up -d --build
+docker compose ps
+```
+
+打开 [http://localhost:3000](http://localhost:3000)。也可使用 `curl http://localhost:3000/health` 检查 API。
+
+镜像内安装了 `canvas` 所需的系统库和 CJK 字体。页面、API、进度流与下载共用同一入口。上传和生成文件保存在 `documents` 数据卷，内存中的任务状态会随服务重启丢失。OCR 会将页面图像发送至配置的豆包 API，因此请先确认待处理文件可以交给该服务。
+
+使用 `docker compose logs --tail=100` 查看日志。使用 `docker compose down` 停止服务并保留数据卷。

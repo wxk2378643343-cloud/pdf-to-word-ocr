@@ -13,7 +13,7 @@ function ProgressDisplay({ taskId, onComplete, onReset }) {
 
   useEffect(() => {
     // 连接SSE获取实时进度
-    const eventSource = new EventSource(`http://localhost:3001/api/progress/${taskId}`)
+    const eventSource = new EventSource(`/api/progress/${taskId}`)
     eventSourceRef.current = eventSource
 
     eventSource.onmessage = (event) => {
@@ -82,7 +82,7 @@ function ProgressDisplay({ taskId, onComplete, onReset }) {
 
   const handleDownload = () => {
     // 直接使用 taskId 下载 ZIP 压缩包
-    window.location.href = `http://localhost:3001/api/download/${taskId}`
+    window.location.href = `/api/download/${taskId}`
   }
 
   const getStatusText = () => {
