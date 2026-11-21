@@ -1,31 +1,64 @@
-# PDF日语OCR识别转Word
+# 日语 PDF OCR 转 Word
 
-使用豆包AI（Doubao-Seed-1.6-vision）识别日语PDF内容并生成Word文档的全栈应用。
+![Node.js](https://img.shields.io/badge/Node.js-2563EB?style=flat-square)
+![Express](https://img.shields.io/badge/Express-0F766E?style=flat-square)
+![React](https://img.shields.io/badge/React-334155?style=flat-square)
+![Canvas](https://img.shields.io/badge/Canvas-B45309?style=flat-square)
+![豆包视觉模型](https://img.shields.io/badge/%E8%B1%86%E5%8C%85%E8%A7%86%E8%A7%89%E6%A8%A1%E5%9E%8B-6D28D9?style=flat-square)
 
-## 功能特点
+## 📌 项目简介
 
-✅ **逐页流式处理** - 支持500+页大文件，内存占用低
-✅ **实时进度显示** - SSE实时推送处理进度
-✅ **智能内容分类** - 自动跳过目录、附录页
-✅ **表格识别** - 识别并保留表格结构
-✅ **暂停/继续** - 支持处理过程中暂停和继续
-✅ **错误处理** - 单页失败不影响整体，自动跳过
-✅ **页码范围** - 可指定处理特定页码范围
+将日语 PDF 的指定页转换为 Word。用户上传文件后可以选择页码、查看处理进度并下载结果。
 
-## 技术栈
+## 🏗️ 系统架构
 
-**后端：** Node.js + Express + PDF.js + Docx + 豆包API
-**前端：** React + Vite + Axios + SSE
+- React 页面提交文件，Express 管理任务并通过 SSE 推送进度。
+- 后端渲染 PDF 页面，将图像交给配置的视觉模型识别，再生成 Word 文件。
 
-## 安装步骤
+## 📁 项目结构
 
-### 1. 克隆项目
+| 路径 | 用途 |
+| --- | --- |
+| [`frontend`](frontend) | 上传、进度与下载界面 |
+| [`backend`](backend) | PDF 渲染、OCR 和 Word 生成 |
+| [`docker`](docker) | 镜像构建和 Nginx 配置 |
+
+## 🚀 如何启动
+
+Docker 内包含 PDF 渲染依赖。先准备豆包 API 密钥，再选择 Docker 或本地开发方式。
+
+### Docker 本地部署
+
+需要 Docker 和 Compose v2。在仓库根目录创建 `.env`，填写以下变量。
+
+```dotenv
+DOUBAO_API_KEY=replace_with_your_api_key
+DOUBAO_MODEL=doubao-seed-1.6-vision
+APP_PORT=3000
+```
+
+```sh
+docker compose config --quiet
+docker compose up -d --build
+docker compose ps
+```
+
+打开 [http://localhost:3000](http://localhost:3000)。也可使用 `curl http://localhost:3000/health` 检查 API。
+
+镜像内安装了 `canvas` 所需的系统库和 CJK 字体。页面、API、进度流与下载共用同一入口。上传和生成文件保存在 `documents` 数据卷，内存中的任务状态会随服务重启丢失。OCR 会将页面图像发送至配置的豆包 API，因此请先确认待处理文件可以交给该服务。
+
+使用 `docker compose logs --tail=100` 查看日志。使用 `docker compose down` 停止服务并保留数据卷。
+
+### 安装步骤
+
+#### 1. 克隆项目
 
 ```bash
+git clone https://github.com/wxk2378643343-cloud/pdf-to-word-ocr.git
 cd pdf-to-word-ocr
 ```
 
-### 2. 配置后端
+#### 2. 配置后端
 
 ```bash
 cd backend
@@ -47,14 +80,14 @@ PORT=3001
 DOUBAO_MODEL=doubao-seed-1.6-vision
 ```
 
-### 3. 配置前端
+#### 3. 配置前端
 
 ```bash
 cd ../frontend
 npm install
 ```
 
-## 获取豆包API密钥
+### 获取豆包API密钥
 
 1. 访问 [火山引擎控制台](https://console.volcengine.com/)
 2. 注册/登录账号
@@ -62,9 +95,9 @@ npm install
 4. 创建API密钥
 5. 每个模型有 **50万tokens免费额度**
 
-## 运行项目
+### 运行项目
 
-### 开发模式
+#### 开发模式
 
 打开两个终端窗口：
 
@@ -83,6 +116,16 @@ npm run dev
 ```
 
 访问：http://localhost:3000
+
+## 功能特点
+
+✅ **逐页流式处理** - 支持500+页大文件，内存占用低
+✅ **实时进度显示** - SSE实时推送处理进度
+✅ **智能内容分类** - 自动跳过目录、附录页
+✅ **表格识别** - 识别并保留表格结构
+✅ **暂停/继续** - 支持处理过程中暂停和继续
+✅ **错误处理** - 单页失败不影响整体，自动跳过
+✅ **页码范围** - 可指定处理特定页码范围
 
 ## 使用说明
 
@@ -187,31 +230,6 @@ GET /api/download/:filename
 - **表格页**：识别为Markdown表格并转换为Word表格
 - **正文页**：普通文字内容
 
-## 项目结构
-
-```
-pdf-to-word-ocr/
-├── backend/                 # 后端服务
-│   ├── server.js           # Express服务器
-│   ├── utils/
-│   │   ├── pdfProcessor.js # PDF转图片
-│   │   ├── doubaoAPI.js    # 豆包API调用
-│   │   ├── contentClassifier.js # 内容分类
-│   │   └── wordGenerator.js     # Word生成
-│   ├── package.json
-│   └── .env.example
-├── frontend/               # 前端应用
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── PDFUploader.jsx    # 上传组件
-│   │   │   └── ProgressDisplay.jsx # 进度显示
-│   │   ├── App.jsx
-│   │   └── main.jsx
-│   ├── package.json
-│   └── vite.config.js
-└── README.md
-```
-
 ## 常见问题
 
 ### Q: 处理500页需要多长时间？
@@ -250,26 +268,3 @@ MIT License
 ## 联系方式
 
 如有问题，请提交Issue或联系开发者。
-
-
-## Docker 本地部署
-
-需要 Docker 和 Compose v2。在仓库根目录创建 `.env`，填写以下变量。
-
-```dotenv
-DOUBAO_API_KEY=replace_with_your_api_key
-DOUBAO_MODEL=doubao-seed-1.6-vision
-APP_PORT=3000
-```
-
-```sh
-docker compose config --quiet
-docker compose up -d --build
-docker compose ps
-```
-
-打开 [http://localhost:3000](http://localhost:3000)。也可使用 `curl http://localhost:3000/health` 检查 API。
-
-镜像内安装了 `canvas` 所需的系统库和 CJK 字体。页面、API、进度流与下载共用同一入口。上传和生成文件保存在 `documents` 数据卷，内存中的任务状态会随服务重启丢失。OCR 会将页面图像发送至配置的豆包 API，因此请先确认待处理文件可以交给该服务。
-
-使用 `docker compose logs --tail=100` 查看日志。使用 `docker compose down` 停止服务并保留数据卷。
